@@ -28,9 +28,6 @@
 
 #include <sys/types.h>
 #include "xf86Version.h"
-#if XORG_VERSION_CURRENT >= XF86_VERSION_NUMERIC(3,9,0,0,0)
-#define XFREE86_V4 1
-#endif
 #include "misc.h"
 #include "xf86.h"
 #include "xf86_OSproc.h"
@@ -38,11 +35,10 @@
 #include "exevents.h"		/* Needed for InitValuator/Proximity stuff */
 #include "mipointer.h"
 
-#ifdef XFree86LOADER
 #include "xf86Module.h"
-#endif
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 
 #define JSX_XCOORD	65584
 #define JSX_YCOORD	65585
@@ -50,8 +46,6 @@
 #define JSX_BTN		852034
 
 #define SYSCALL(call) while(((call) == -1) && (errno == EINTR))
-
-#ifdef XFREE86_V4
 
 struct hiddev_event
 {
@@ -154,8 +148,13 @@ xf86JS_XConvert(LocalDevicePtr local, int first, int num, int v0, int v1,
    int width, height;
    int deltaX, deltaY;
 
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) == 0
    width = miPointerCurrentScreen()->width;
    height = miPointerCurrentScreen()->height;
+#else
+   width = miPointerGetScreen(local->dev)->width;
+   height = miPointerGetScreen(local->dev)->height;
+#endif
 /*
 deltaX=(float)width/priv->jsxMaxX; deltaY=(float)height/priv->jsxMaxY;
 */
@@ -192,7 +191,10 @@ xf86JS_XProc(DeviceIntPtr pJS_X, int operation)
 	 return !Success;
       if (InitProximityClassDeviceStruct(pJS_X) == FALSE)
 	 return !Success;
-      if (InitValuatorClassDeviceStruct(pJS_X, nbaxes, xf86GetMotionEvents,
+      if (InitValuatorClassDeviceStruct(pJS_X, nbaxes,
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) < 3
+					xf86GetMotionEvents,
+#endif
 					local->history_size,
 					Absolute | OutOfProximity) == FALSE)
 	 return !Success;
@@ -330,8 +332,6 @@ xf86JS_XInit(InputDriverPtr drv, IDevPtr dev, int flags)
 _X_EXPORT InputDriverRec JAMSTUDIO =
       { 1, "js_x", NULL, xf86JS_XInit, xf86JS_XUnInit, NULL, 0 };
 
-#ifdef XFree86LOADER
-
 static void
 xf86JS_XUnplug(pointer p)
 {
@@ -363,5 +363,3 @@ _X_EXPORT XF86ModuleData js_xModuleData = {
    xf86JS_XPlug,
    xf86JS_XUnplug
 };
-#endif
-#endif
