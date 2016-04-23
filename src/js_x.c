@@ -27,7 +27,6 @@
 #endif
 
 #include <sys/types.h>
-#include "xf86Version.h"
 #include "misc.h"
 #include "xf86.h"
 #include "xf86_OSproc.h"
@@ -74,7 +73,7 @@ typedef struct
 JS_XDevRec, *JS_XDevPtr;
 
 static void
-xf86JS_XReadInput(LocalDevicePtr local)
+xf86JS_XReadInput(InputInfoPtr local)
 {
    JS_XDevPtr priv = local->private;
    struct hiddev_event event;
@@ -127,7 +126,7 @@ xf86JS_XReadInput(LocalDevicePtr local)
 static int
 xf86JS_XConnect(DeviceIntPtr pJS_X)
 {
-   LocalDevicePtr local = (LocalDevicePtr) pJS_X->public.devicePrivate;
+   InputInfoPtr local = (InputInfoPtr) pJS_X->public.devicePrivate;
    JS_XDevPtr priv = local->private;
 
    local->fd = xf86OpenSerial(local->options);
@@ -141,7 +140,7 @@ xf86JS_XConnect(DeviceIntPtr pJS_X)
 }
 
 static Bool
-xf86JS_XConvert(LocalDevicePtr local, int first, int num, int v0, int v1,
+xf86JS_XConvert(InputInfoPtr local, int first, int num, int v0, int v1,
 		int v2, int v3, int v4, int v5, int *x, int *y)
 {
    JS_XDevPtr priv = local->private;
@@ -175,7 +174,7 @@ xf86JS_XControlProc(DeviceIntPtr device, PtrCtrl * ctrl)
 static int
 xf86JS_XProc(DeviceIntPtr pJS_X, int operation)
 {
-   LocalDevicePtr local = (LocalDevicePtr) pJS_X->public.devicePrivate;
+   InputInfoPtr local = (InputInfoPtr) pJS_X->public.devicePrivate;
    int nbaxes = 3;			/* X Y Pressure */
    int nbuttons = 1;			/* This this is necessary for most apps to work. */
    CARD8 map[2] = { 0, 1 };
@@ -226,7 +225,7 @@ xf86JS_XProc(DeviceIntPtr pJS_X, int operation)
 }
 
 static int
-xf86JS_XChangeControl(LocalDevicePtr local, xDeviceCtl * control)
+xf86JS_XChangeControl(InputInfoPtr local, xDeviceCtl * control)
 {
    return Success;
 }
@@ -237,10 +236,10 @@ xf86JS_XSwitchMode(ClientPtr client, DeviceIntPtr dev, int mode)
    return Success;
 }
 
-static LocalDevicePtr
+static InputInfoPtr
 xf86JS_XAllocate(InputDriverPtr drv)
 {
-   LocalDevicePtr local;
+   InputInfoPtr local;
    JS_XDevPtr priv = xalloc(sizeof(JS_XDevRec));
 
    if (!priv)
@@ -287,7 +286,7 @@ xf86JS_XAllocate(InputDriverPtr drv)
 }
 
 static void
-xf86JS_XUnInit(InputDriverPtr drv, LocalDevicePtr local, int flags)
+xf86JS_XUnInit(InputDriverPtr drv, InputInfoPtr local, int flags)
 {
    JS_XDevPtr priv = local->private;
 
@@ -299,7 +298,7 @@ xf86JS_XUnInit(InputDriverPtr drv, LocalDevicePtr local, int flags)
 static InputInfoPtr
 xf86JS_XInit(InputDriverPtr drv, IDevPtr dev, int flags)
 {
-   LocalDevicePtr local = NULL;
+   InputInfoPtr local = NULL;
    JS_XDevPtr priv = NULL;
    pointer options;
 
