@@ -72,6 +72,20 @@ typedef struct
 }
 JS_XDevRec, *JS_XDevPtr;
 
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) > 13
+static void
+xf86XInputSetScreen(InputInfoPtr	pInfo,
+		    int			screen_number,
+		    int			x,
+		    int			y)
+{
+    if (miPointerGetScreen(pInfo->dev) !=
+          screenInfo.screens[screen_number]) {
+	miPointerSetScreen(pInfo->dev, screen_number, x, y);
+    }
+}
+#endif
+
 static void
 xf86JS_XReadInput(InputInfoPtr local)
 {
